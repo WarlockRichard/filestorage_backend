@@ -17,12 +17,10 @@ use Illuminate\Http\Request;
 //    return $request->user();
 //});
 
-Route::get('files', 'FileController@index');
-Route::get('files/find/{id}', 'FileController@find');
-Route::delete('files/{id}', 'FileController@destroy');
-Route::post('files/store', 'FileController@store');
+Route::apiResource('files', 'FileController', ["only" => ['index', 'show', 'destroy', 'store']]);
 
 
 Route::get('user', 'AuthController@getUser');
-Route::post('login', 'AuthController@login');
-Route::post('logout', 'AuthController@logout');
+Route::post('auth/login', 'AuthController@login');
+Route::post('auth/verify', 'AuthController@verify');
+Route::post('auth/logout', 'AuthController@logout');

@@ -48,6 +48,6 @@ class AuthController extends Controller
 
         }
 
-        return ['status' => 'success', 'user' => $user];
+        return ['status' => 'success', 'data' => $user];
     }
 }

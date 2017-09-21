@@ -10,7 +10,7 @@ class FileController extends Controller
     public function index(){
 
         if($files = File::all()){
-            return ['status' => 'success', 'files' => $files];
+            return ['status' => 'success', 'data' => $files];
         }
         else{
             return ['status' => 'fail'];
@@ -30,7 +30,7 @@ class FileController extends Controller
     public function show($id)
     {
         if($file = File::find($id)){
-            return ['status' => 'success', 'file' => $file];
+            return ['status' => 'success', 'data' => $file];
         }
         else{
             return ['status' => 'fail'];

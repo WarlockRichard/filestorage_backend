@@ -9,6 +9,7 @@ class FileController extends Controller
 {
     public function index(){
 
+        JWTAuth::setToken($request->header('Authorization'));
         if($files = File::all()){
             return ['status' => 'success', 'data' => $files];
         }

@@ -23,4 +23,4 @@ Route::apiResource('files', 'FileController', ["only" => ['index', 'show', 'dest
 Route::get('user', 'AuthController@getUser');
 Route::post('auth/login', 'AuthController@login');
 Route::post('auth/verify', 'AuthController@verify');
-Route::post('auth/logout', 'AuthController@logout');
+Route::get('auth/logout', 'AuthController@logout');

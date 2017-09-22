@@ -8,9 +8,23 @@ use JWTAuth;
 class AuthController extends Controller
 {
     public function logout(Request $request){
-        JWTAuth::invalidate($request->header('Authorization'));
-        return $request->header('Authorization');
-//        JWTAuth::logout();
+        try{
+        $arHeader =  explode(' : ', $request->header('Authentication'));
+            JWTAuth::setToken($arHeader[1])->invalidate();
+
+    	} catch (Exceptions\TokenExpiredException $e) {
+
+            return response()->json(['error' => 'token_expired'], $e->getStatusCode());
+
+        } catch (Exceptions\TokenInvalidException $e) {
+
+            return response()->json(['error' => 'token_invalid'], $e->getStatusCode());
+
+        } catch (Exceptions\JWTException $e) {
+
+            return response()->json(['error' => 'token_absent'], $e->getStatusCode());
+
+        }
         return ['status' => 'success'];
     }
 

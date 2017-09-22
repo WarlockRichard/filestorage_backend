@@ -8,7 +8,9 @@ use JWTAuth;
 class AuthController extends Controller
 {
     public function logout(Request $request){
-        JWTAuth::logout();
+        JWTAuth::invalidate($request->header('Authorization'));
+        return $request->header('Authorization');
+//        JWTAuth::logout();
         return ['status' => 'success'];
     }
 

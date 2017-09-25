@@ -9,8 +9,7 @@ class AuthController extends Controller
 {
     public function logout(Request $request){
         try{
-        $arHeader =  explode(' : ', $request->header('Authentication'));
-            JWTAuth::setToken($arHeader[1])->invalidate();
+            JWTAuth::setToken($request->header('Authorization'))->invalidate();
 
     	} catch (Exceptions\TokenExpiredException $e) {
 
@@ -49,24 +48,22 @@ class AuthController extends Controller
 
     public function getUser(Request $request)
     {
-        JWTAuth::setToken($request->header('Authorization'));
         try{
+            JWTAuth::setToken($request->header('Authorization'));
             $user = JWTAuth::toUser();
+        } catch (Exceptions\TokenExpiredException $e) {
+
+            return response()->json(['error' => 'token_expired'], $e->getStatusCode());
+
+        } catch (Exceptions\TokenInvalidException $e) {
+
+            return response()->json(['error' => 'token_invalid'], $e->getStatusCode());
+
+        } catch (Exceptions\JWTException $e) {
+
+            return response()->json(['error' => 'token_absent'], $e->getStatusCode());
+
         }
-        catch (Tymon\JWTAuth\Exceptions\TokenExpiredException $e) {
-
-            return response()->json(['token_expired'], $e->getStatusCode());
-
-        } catch (Tymon\JWTAuth\Exceptions\TokenInvalidException $e) {
-
-            return response()->json(['token_invalid'], $e->getStatusCode());
-
-        } catch (Tymon\JWTAuth\Exceptions\JWTException $e) {
-
-            return response()->json(['token_absent'], $e->getStatusCode());
-
-        }
-
         return ['status' => 'success', 'data' => $user];
     }
 }

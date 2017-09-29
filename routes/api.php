@@ -19,6 +19,7 @@ use Illuminate\Http\Request;
 
 Route::apiResource('files', 'FileController', ["only" => ['index', 'show', 'destroy', 'store']]);
 
+Route::get('files/download/{id}', 'FileController@download');
 
 Route::get('user', 'AuthController@getUser');
 Route::post('auth/login', 'AuthController@login');

@@ -35,7 +35,7 @@ class FileController extends Controller
                 if($filesystem->exists($fullPath)){
                     $info = [];
                     $info['id'] = $file->id;
-                    $info['path'] = 'http://backend.dev/storage/app/'.$file->path;
+                    $info['path'] = 'http://backend.dev/storage/app'.$file->path;
                     $info['original_name'] = $file->original_name;
                     $info['created_at'] = $file->created_at->toDateTimeString();
                     $info['size'] = $filesystem->size($fullPath);
@@ -94,7 +94,8 @@ class FileController extends Controller
 
         }
         if($file = File::where('user_id', $user->id)->find($id)){
-            return ['status' => 'success', 'data' => $file];
+            $base = "/OSPanel/domains/backend.dev/storage/app/files";
+            return response()->download($base.$file->path);//['status' => 'success', 'data' => $file];
         }
         else{
             return ['status' => 'fail'];

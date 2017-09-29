@@ -3,30 +3,47 @@
 namespace App\Http\Controllers;
 
 use App\File;
+use Illuminate\Filesystem\Filesystem;
 use Illuminate\Http\Request;
 use JWTAuth;
+use Tymon\JWTAuth\Exceptions;
 
 class FileController extends Controller
 {
-    public function index(Request $request){
-
+    public function index(Request $request, Filesystem $filesystem){
         try{
-            JWTAuth::setToken($request->header('Authorization'));
+            $user = JWTAuth::parseToken()->toUser();
         } catch (Exceptions\TokenExpiredException $e) {
 
-            return response()->json(['error' => 'token_expired'], $e->getStatusCode());
+            return response()->json(['error' => 'token_expired'], 401);
 
         } catch (Exceptions\TokenInvalidException $e) {
 
-            return response()->json(['error' => 'token_invalid'], $e->getStatusCode());
+            return response()->json(['error' => 'token_invalid'], 401);
 
         } catch (Exceptions\JWTException $e) {
 
-            return response()->json(['error' => 'token_absent'], $e->getStatusCode());
+            return response()->json(['error' => 'token_absent'], 401);
 
         }
-        if($files = File::all()){
-            return ['status' => 'success', 'data' => $files];
+        if($files = File::where('user_id', $user->id)->get()){
+            $base = "/OSPanel/domains/backend.dev/storage/app/files";
+            $result = [];
+//            $result = $filesystem->allFiles('/OSPanel/domains/backend.dev/storage/app/files/upload');
+            foreach ($files as $file){
+                $fullPath = $base.$file->path;
+                if($filesystem->exists($fullPath)){
+                    $info = [];
+                    $info['id'] = $file->id;
+                    $info['path'] = 'http://backend.dev/storage/app/'.$file->path;
+                    $info['original_name'] = $file->original_name;
+                    $info['created_at'] = $file->created_at->toDateTimeString();
+                    $info['size'] = $filesystem->size($fullPath);
+                    $result[] = $info;
+                }
+            }
+
+            return ['status' => 'success', 'data' => $result];
         }
         else{
             return ['status' => 'fail'];
@@ -35,34 +52,48 @@ class FileController extends Controller
 
     public function store(Request $request)
     {
-
         try{
-            JWTAuth::setToken($request->header('Authorization'));
-            $user = JWTAuth::toUser();
+            $user = JWTAuth::parseToken()->toUser();;
         } catch (Exceptions\TokenExpiredException $e) {
 
-            return response()->json(['error' => 'token_expired'], $e->getStatusCode());
+            return response()->json(['error' => 'token_expired'], 401);
 
         } catch (Exceptions\TokenInvalidException $e) {
 
-            return response()->json(['error' => 'token_invalid'], $e->getStatusCode());
+            return response()->json(['error' => 'token_invalid'], 401);
 
         } catch (Exceptions\JWTException $e) {
 
-            return response()->json(['error' => 'token_absent'], $e->getStatusCode());
+            return response()->json(['error' => 'token_absent'], 401);
 
         }
-            return ['status' => File::create(array(
-                'user_id' => $user->id,
-                'path' => request('author'),
-                'type' => request('text')
-            ))
-                ?'success':'fail'];
+        $path = $request->file->store('files');
+//        return request();
+        return ['status' => File::create(array(
+            'user_id' => $user->id,
+            'path' => $path
+        ))
+            ?'success':'fail'];
     }
 
     public function show($id)
     {
-        if($file = File::find($id)){
+        try{
+            $user = JWTAuth::parseToken()->toUser();
+        } catch (Exceptions\TokenExpiredException $e) {
+
+            return response()->json(['error' => 'token_expired'], 401);
+
+        } catch (Exceptions\TokenInvalidException $e) {
+
+            return response()->json(['error' => 'token_invalid'], 401);
+
+        } catch (Exceptions\JWTException $e) {
+
+            return response()->json(['error' => 'token_absent'], 401);
+
+        }
+        if($file = File::where('user_id', $user->id)->find($id)){
             return ['status' => 'success', 'data' => $file];
         }
         else{
@@ -70,30 +101,30 @@ class FileController extends Controller
         }
     }
 
-    public function destroy($id, Request $request)
+    public function destroy($id, Request $request, Filesystem $filesystem)
     {
         try{
-            JWTAuth::setToken($request->header('Authorization'));
-            $user = JWTAuth::toUser();
+            $user = JWTAuth::parseToken()->toUser();
         } catch (Exceptions\TokenExpiredException $e) {
 
-            return response()->json(['error' => 'token_expired'], $e->getStatusCode());
+            return response()->json(['error' => 'token_expired'], 401);
 
         } catch (Exceptions\TokenInvalidException $e) {
 
-            return response()->json(['error' => 'token_invalid'], $e->getStatusCode());
+            return response()->json(['error' => 'token_invalid'], 401);
 
         } catch (Exceptions\JWTException $e) {
 
-            return response()->json(['error' => 'token_absent'], $e->getStatusCode());
+            return response()->json(['error' => 'token_absent'], 401);
 
         }
-        $file = File::find($id);
-        if($file->user_id == $user->id){
+        if($file = File::where('user_id', $user->id)->find($id)){
+            $base = "/OSPanel/domains/backend.dev/storage/app/files";
+            $filesystem->delete($base.$file->path);
             return ['status' => File::destroy($id)?'success':'fail'];
         }
         else{
-            response()->json(['error' => 'Some tea?'], 418);
+            response()->json(['error' => 'File not found'], 404);
         }
     }
 }
